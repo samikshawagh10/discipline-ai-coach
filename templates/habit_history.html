@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{{ habit.name }} - History{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="history-header">
+        <div>
+            <a href="{{ url_for('dashboard') }}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h1><i class="fas fa-history"></i> {{ habit.name }}</h1>
+            {% if habit.description %}
+            <p class="habit-desc">{{ habit.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="habit-stats-summary">
+        <div class="stat-box">
+            <i class="fas fa-fire"></i>
+            <div>
+                <div class="stat-value">{{ habit.current_streak }}</div>
+                <div class="stat-label">Current Streak</div>
+            </div>
+        </div>
+        <div class="stat-box">
+            <i class="fas fa-trophy"></i>
+            <div>
+                <div class="stat-value">{{ habit.best_streak }}</div>
+                <div class="stat-label">Best Streak Ever</div>
+            </div>
+        </div>
+        <div class="stat-box">
+            <i class="fas fa-calendar-alt"></i>
+            <div>
+                <div class="stat-value">{{ history|length }}</div>
+                <div class="stat-label">Days Tracked</div>
+            </div>
+        </div>
+    </div>
+
+    {% if history %}
+    <div class="history-section">
+        <h2><i class="fas fa-calendar-check"></i> Tracking History (Last 30 Days)</h2>
+        
+        <div class="history-timeline">
+            {% for record in history %}
+            <div class="history-item {% if record.completed %}completed{% else %}missed{% endif %}">
+                <div class="history-date">
+                    <div class="date-day">{{ record.date|e }}</div>
+                    <div class="date-weekday">
+                        {% set date_obj = record.date|e %}
+                        {{ date_obj }}
+                    </div>
+                </div>
+                <div class="history-status">
+                    {% if record.completed %}
+                        <i class="fas fa-check-circle"></i>
+                        <span class="status-text">Completed</span>
+                    {% else %}
+                        <i class="fas fa-times-circle"></i>
+                        <span class="status-text">Missed</span>
+                    {% endif %}
+                </div>
+                {% if record.notes %}
+                <div class="history-notes">
+                    <i class="fas fa-sticky-note"></i> {{ record.notes }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-calendar-times"></i>
+        <h3>No History Yet</h3>
+        <p>Start tracking this habit daily to see your progress over time.</p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="history-tips">
+        <h3><i class="fas fa-lightbulb"></i> Keep Your Streak Alive</h3>
+        <ul>
+            <li>Track your habit at the same time every day</li>
+            <li>Never miss two days in a row - consistency is key</li>
+            <li>Review your history weekly to spot patterns</li>
+            <li>Celebrate your streaks but don't let one miss ruin your progress

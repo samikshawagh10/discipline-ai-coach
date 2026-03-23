@@ -1,0 +1,1130 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Discipline AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Welcome Hero Section -->
+    <div class="dashboard-hero">
+        <div class="hero-content-wrapper">
+            <div class="welcome-section">
+                <h1 class="welcome-title">
+                    <i class="fas fa-fire-alt icon-pulse"></i>
+                    Welcome back, <span class="gradient-text">{{ session.username }}</span>!
+                </h1>
+                <p class="welcome-subtitle">Let's build unstoppable discipline today</p>
+            </div>
+            <div class="quick-actions">
+                <a href="{{ url_for('add_habit') }}" class="quick-action-btn">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>New Habit</span>
+                </a>
+                <a href="{{ url_for('insights') }}" class="quick-action-btn">
+                    <i class="fas fa-brain"></i>
+                    <span>AI Insights</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Progress Overview -->
+    {% if habits %}
+    <div class="progress-overview">
+        <h2 class="section-title-modern">
+            <i class="fas fa-chart-line"></i>
+            Today's Progress
+        </h2>
+        <div class="progress-stats-grid">
+            <div class="progress-stat-card">
+                <div class="stat-icon-wrapper green">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">{{ habits|selectattr('completed_today')|list|length }}/{{ habits|length }}</div>
+                    <div class="stat-text">Completed Today</div>
+                </div>
+                <div class="stat-progress-ring">
+                    {% set today_percentage = (habits|selectattr('completed_today')|list|length / habits|length * 100)|round|int %}
+                    <svg class="progress-ring" width="60" height="60">
+                        <circle class="progress-ring-circle" stroke="#e5e7eb" stroke-width="4" fill="transparent" r="26" cx="30" cy="30"/>
+                        <circle class="progress-ring-circle-fill" stroke="#10b981" stroke-width="4" fill="transparent" r="26" cx="30" cy="30" 
+                                style="stroke-dasharray: 163.36; stroke-dashoffset: {{ 163.36 - (163.36 * today_percentage / 100) }};"/>
+                    </svg>
+                    <div class="progress-ring-text">{{ today_percentage }}%</div>
+                </div>
+            </div>
+
+            <div class="progress-stat-card">
+                <div class="stat-icon-wrapper orange">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <div class="stat-content">
+                    {% set max_streak = 0 %}
+                    {% for habit in habits %}
+                        {% if habit.current_streak > max_streak %}
+                            {% set max_streak = habit.current_streak %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="stat-number">{{ max_streak }} days</div>
+                    <div class="stat-text">Longest Streak</div>
+                </div>
+                <div class="streak-badge">
+                    {% if max_streak >= 7 %}
+                        <i class="fas fa-trophy trophy-gold"></i>
+                    {% elif max_streak >= 3 %}
+                        <i class="fas fa-medal trophy-silver"></i>
+                    {% else %}
+                        <i class="fas fa-star trophy-bronze"></i>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="progress-stat-card">
+                <div class="stat-icon-wrapper blue">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stat-content">
+                    {% set total_rate = 0 %}
+                    {% for habit in habits %}
+                        {% set total_rate = total_rate + habit.completion_rate %}
+                    {% endfor %}
+                    {% set avg_rate = (total_rate / habits|length)|round|int %}
+                    <div class="stat-number">{{ avg_rate }}%</div>
+                    <div class="stat-text">Avg Completion</div>
+                </div>
+                <div class="stat-trend">
+                    {% if avg_rate >= 80 %}
+                        <span class="trend-up"><i class="fas fa-arrow-up"></i> Excellent</span>
+                    {% elif avg_rate >= 60 %}
+                        <span class="trend-neutral"><i class="fas fa-minus"></i> Good</span>
+                    {% else %}
+                        <span class="trend-down"><i class="fas fa-arrow-down"></i> Improve</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="progress-stat-card">
+                <div class="stat-icon-wrapper purple">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-number">{{ habits|length }}</div>
+                    <div class="stat-text">Active Habits</div>
+                </div>
+                <div class="habit-categories">
+                    {% set categories = habits|map(attribute='category')|unique|list %}
+                    {% for category in categories[:3] %}
+                        <span class="mini-badge">{{ category or 'Other' }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- AI Insights Section - Enhanced -->
+    {% if insights %}
+    <div class="insights-section-modern">
+        <div class="section-header-modern">
+            <h2 class="section-title-modern">
+                <i class="fas fa-brain icon-pulse"></i>
+                AI Coaching Insights
+            </h2>
+            {% if insights|length > 3 %}
+            <a href="{{ url_for('insights') }}" class="view-all-link">
+                View All {{ insights|length }} Insights <i class="fas fa-arrow-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        <div class="insights-grid-modern">
+            {% for insight in insights[:3] %}
+            <div class="insight-card-modern insight-{{ insight.severity }}">
+                <div class="insight-icon-badge badge-{{ insight.severity }}">
+                    {% if insight.severity == 'critical' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif insight.severity == 'high' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% elif insight.severity == 'positive' %}
+                        <i class="fas fa-trophy"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="insight-content-modern">
+                    <h4 class="insight-habit-name">{{ insight.habit_name }}</h4>
+                    <p class="insight-message-modern">{{ insight.message }}</p>
+                    <div class="insight-severity-tag tag-{{ insight.severity }}">
+                        {% if insight.severity == 'critical' %}Critical Priority
+                        {% elif insight.severity == 'high' %}High Priority
+                        {% elif insight.severity == 'positive' %}Achievement
+                        {% else %}Insight{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Habits Section - Premium Cards -->
+    <div class="habits-section-modern">
+        <div class="section-header-modern">
+            <h2 class="section-title-modern">
+                <i class="fas fa-tasks"></i>
+                Your Habits
+            </h2>
+            <a href="{{ url_for('add_habit') }}" class="btn btn-primary-modern">
+                <i class="fas fa-plus"></i> Add New Habit
+            </a>
+        </div>
+
+        {% if habits %}
+        <div class="habits-grid-modern">
+            {% for habit in habits %}
+            <div class="habit-card-modern {% if habit.completed_today %}completed{% endif %}">
+                <!-- Card Header -->
+                <div class="habit-card-header">
+                    <div class="habit-info-section">
+                        <div class="habit-status-indicator {% if habit.completed_today %}status-completed{% else %}status-pending{% endif %}">
+                            <i class="fas fa-{% if habit.completed_today %}check-circle{% else %}circle{% endif %}"></i>
+                        </div>
+                        <div>
+                            <h3 class="habit-name-modern">{{ habit.name }}</h3>
+                            {% if habit.category %}
+                            <span class="habit-category-modern category-{{ habit.category|lower }}">
+                                <i class="fas fa-tag"></i> {{ habit.category }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <form method="POST" action="{{ url_for('delete_habit', habit_id=habit.id) }}" 
+                          onsubmit="return confirm('Delete this habit?');" class="delete-form">
+                        <button type="submit" class="btn-icon-modern btn-danger" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Description -->
+                {% if habit.description %}
+                <p class="habit-description-modern">{{ habit.description }}</p>
+                {% endif %}
+
+                <!-- Stats Grid -->
+                <div class="habit-stats-modern">
+                    <div class="stat-item-modern">
+                        <div class="stat-icon-modern streak">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div>
+                            <div class="stat-value-modern">{{ habit.current_streak }}</div>
+                            <div class="stat-label-modern">Streak</div>
+                        </div>
+                    </div>
+                    <div class="stat-item-modern">
+                        <div class="stat-icon-modern trophy">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div>
+                            <div class="stat-value-modern">{{ habit.best_streak }}</div>
+                            <div class="stat-label-modern">Best</div>
+                        </div>
+                    </div>
+                    <div class="stat-item-modern">
+                        <div class="stat-icon-modern chart">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <div class="stat-value-modern">{{ habit.completion_rate|round|int }}%</div>
+                            <div class="stat-label-modern">7-Day</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar with Percentage -->
+                <div class="progress-container-modern">
+                    <div class="progress-labels">
+                        <span class="progress-label-text">Weekly Progress</span>
+                        <span class="progress-label-percent">{{ habit.completion_rate|round|int }}%</span>
+                    </div>
+                    <div class="progress-bar-modern">
+                        <div class="progress-fill-modern" style="width: {{ habit.completion_rate }}%">
+                            <div class="progress-shine"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="habit-actions-modern">
+                    <form method="POST" action="{{ url_for('track_habit', habit_id=habit.id) }}" class="track-form-modern">
+                        <input type="hidden" name="completed" value="{{ 'false' if habit.completed_today else 'true' }}">
+                        {% if habit.completed_today %}
+                        <button type="submit" class="btn-track-modern btn-completed">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Completed Today</span>
+                        </button>
+                        {% else %}
+                        <button type="submit" class="btn-track-modern btn-pending">
+                            <i class="fas fa-check"></i>
+                            <span>Mark as Done</span>
+                        </button>
+                        {% endif %}
+                    </form>
+                    <a href="{{ url_for('habit_history', habit_id=habit.id) }}" class="btn-history-modern">
+                        <i class="fas fa-history"></i> History
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- Empty State - Beautiful -->
+        <div class="empty-state-modern">
+            <div class="empty-state-icon">
+                <i class="fas fa-seedling"></i>
+            </div>
+            <h3 class="empty-state-title">Start Your Journey</h3>
+            <p class="empty-state-text">
+                You haven't created any habits yet. Add your first habit to begin building discipline!
+            </p>
+            <a href="{{ url_for('add_habit') }}" class="btn btn-primary-modern btn-large">
+                <i class="fas fa-plus-circle"></i> Create Your First Habit
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Achievement Badges Section -->
+    {% if habits %}
+    <div class="achievements-section">
+        <h2 class="section-title-modern">
+            <i class="fas fa-award"></i>
+            Your Achievements
+        </h2>
+        <div class="achievements-grid">
+            {% set total_completed = habits|selectattr('completed_today')|list|length %}
+            {% set max_streak = 0 %}
+            {% for habit in habits %}
+                {% if habit.current_streak > max_streak %}
+                    {% set max_streak = habit.current_streak %}
+                {% endif %}
+            {% endfor %}
+            {% set total_rate = 0 %}
+            {% for habit in habits %}
+                {% set total_rate = total_rate + habit.completion_rate %}
+            {% endfor %}
+            {% set avg_completion = (total_rate / habits|length)|round|int %}
+            
+            <div class="achievement-card {% if total_completed == habits|length %}unlocked{% endif %}">
+                <div class="achievement-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h4>Perfect Day</h4>
+                <p>Complete all habits in a day</p>
+                <div class="achievement-progress">{{ total_completed }}/{{ habits|length }}</div>
+            </div>
+
+            <div class="achievement-card {% if max_streak >= 7 %}unlocked{% endif %}">
+                <div class="achievement-icon">
+                    <i class="fas fa-fire-alt"></i>
+                </div>
+                <h4>Week Warrior</h4>
+                <p>Maintain a 7-day streak</p>
+                <div class="achievement-progress">{{ max_streak }}/7</div>
+            </div>
+
+            <div class="achievement-card {% if avg_completion >= 90 %}unlocked{% endif %}">
+                <div class="achievement-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h4>Excellence</h4>
+                <p>Achieve 90% completion rate</p>
+                <div class="achievement-progress">{{ avg_completion }}/90%</div>
+            </div>
+
+            <div class="achievement-card {% if habits|length >= 5 %}unlocked{% endif %}">
+                <div class="achievement-icon">
+                    <i class="fas fa-list-check"></i>
+                </div>
+                <h4>Habit Master</h4>
+                <p>Track 5 or more habits</p>
+                <div class="achievement-progress">{{ habits|length }}/5</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* ==================== ENHANCED DASHBOARD STYLES ==================== */
+
+/* Welcome Hero */
+.dashboard-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.hero-content-wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.gradient-text {
+    background: linear-gradient(45deg, #fff, #e0e7ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.welcome-subtitle {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.9);
+}
+
+.icon-pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.quick-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.quick-action-btn {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.quick-action-btn:hover {
+    background: rgba(255,255,255,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* Progress Overview */
+.progress-overview {
+    margin-bottom: 40px;
+}
+
+.section-title-modern {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.progress-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.progress-stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #6366f1, #8b5cf6);
+}
+
+.progress-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.stat-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.stat-icon-wrapper.green { background: linear-gradient(135deg, #10b981, #059669); }
+.stat-icon-wrapper.orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stat-icon-wrapper.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.stat-icon-wrapper.purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 5px;
+}
+
+.stat-text {
+    font-size: 0.95rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.stat-progress-ring {
+    position: relative;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-circle-fill {
+    transition: stroke-dashoffset 1s ease-in-out;
+}
+
+.progress-ring-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #10b981;
+}
+
+.streak-badge {
+    font-size: 2rem;
+}
+
+.trophy-gold { color: #fbbf24; }
+.trophy-silver { color: #9ca3af; }
+.trophy-bronze { color: #d97706; }
+
+.stat-trend {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.trend-up { color: #10b981; }
+.trend-neutral { color: #6b7280; }
+.trend-down { color: #ef4444; }
+
+.habit-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mini-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    color: #6b7280;
+}
+
+/* AI Insights Modern */
+.insights-section-modern {
+    margin-bottom: 40px;
+}
+
+.section-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.view-all-link {
+    color: #6366f1;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.view-all-link:hover {
+    color: #4f46e5;
+    gap: 12px;
+}
+
+.insights-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.insight-card-modern {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    display: flex;
+    gap: 20px;
+    transition: all 0.3s;
+    border-left: 4px solid;
+}
+
+.insight-card-modern.insight-critical { 
+    border-left-color: #ef4444; 
+    background: linear-gradient(135deg, rgba(239,68,68,0.05), white); 
+}
+.insight-card-modern.insight-high { 
+    border-left-color: #f59e0b; 
+    background: linear-gradient(135deg, rgba(245,158,11,0.05), white); 
+}
+.insight-card-modern.insight-medium { 
+    border-left-color: #3b82f6; 
+    background: linear-gradient(135deg, rgba(59,130,246,0.05), white); 
+}
+.insight-card-modern.insight-positive { 
+    border-left-color: #10b981; 
+    background: linear-gradient(135deg, rgba(16,185,129,0.05), white); 
+}
+
+.insight-card-modern:hover {
+    transform: translateX(5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.insight-icon-badge {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.badge-critical { background: rgba(239,68,68,0.1); color: #ef4444; }
+.badge-high { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.badge-medium { background: rgba(59,130,246,0.1); color: #3b82f6; }
+.badge-positive { background: rgba(16,185,129,0.1); color: #10b981; }
+
+.insight-content-modern {
+    flex: 1;
+}
+
+.insight-habit-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.insight-message-modern {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.insight-severity-tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.tag-critical { background: rgba(239,68,68,0.1); color: #991b1b; }
+.tag-high { background: rgba(245,158,11,0.1); color: #92400e; }
+.tag-medium { background: rgba(59,130,246,0.1); color: #1e3a8a; }
+.tag-positive { background: rgba(16,185,129,0.1); color: #065f46; }
+
+/* Habits Modern */
+.habits-section-modern {
+    margin-bottom: 40px;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99,102,241,0.4);
+}
+
+.habits-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 25px;
+}
+
+.habit-card-modern {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid #f3f4f6;
+    position: relative;
+    overflow: hidden;
+}
+
+.habit-card-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+}
+
+.habit-card-modern:hover::before {
+    transform: scaleX(1);
+}
+
+.habit-card-modern:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 35px rgba(99,102,241,0.15);
+    border-color: #6366f1;
+}
+
+.habit-card-modern.completed {
+    border-color: #10b981;
+    background: linear-gradient(135deg, rgba(16,185,129,0.02), white);
+}
+
+.habit-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.habit-info-section {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.habit-status-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.status-completed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.status-pending {
+    background: #f3f4f6;
+    color: #9ca3af;
+}
+
+.habit-name-modern {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 5px;
+}
+
+.habit-category-modern {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.category-health { background: rgba(239,68,68,0.1); color: #991b1b; }
+.category-learning { background: rgba(59,130,246,0.1); color: #1e3a8a; }
+.category-productivity { background: rgba(139,92,246,0.1); color: #5b21b6; }
+.category-mindfulness { background: rgba(16,185,129,0.1); color: #065f46; }
+.category-social { background: rgba(245,158,11,0.1); color: #92400e; }
+.category-finance { background: rgba(34,197,94,0.1); color: #166534; }
+.category-creative { background: rgba(236,72,153,0.1); color: #9f1239; }
+
+.btn-icon-modern {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s;
+    color: #9ca3af;
+}
+
+.btn-icon-modern:hover {
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+}
+
+.habit-description-modern {
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.habit-stats-modern {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-item-modern {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stat-icon-modern {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.stat-icon-modern.streak { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stat-icon-modern.trophy { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.stat-icon-modern.chart { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+.stat-value-modern {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1f2937;
+    line-height: 1;
+}
+
+.stat-label-modern {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.progress-container-modern {
+    margin-bottom: 20px;
+}
+
+.progress-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.progress-label-text {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.progress-label-percent {
+    font-size: 0.85rem;
+    color: #6366f1;
+    font-weight: 700;
+}
+
+.progress-bar-modern {
+    height: 10px;
+    background: #f3f4f6;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill-modern {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 10px;
+    transition: width 1s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shine 2s infinite;
+}
+
+@keyframes shine {
+    to { left: 100%; }
+}
+
+.habit-actions-modern {
+    display: flex;
+    gap: 10px;
+}
+
+.track-form-modern {
+    flex: 1;
+}
+
+.btn-track-modern {
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-completed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+}
+
+.btn-completed:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+}
+
+.btn-pending {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+}
+
+.btn-pending:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+}
+
+.btn-history-modern {
+    padding: 14px 20px;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-history-modern:hover {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+/* Empty State */
+.empty-state-modern {
+    text-align: center;
+    padding: 80px 40px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.05));
+    border-radius: 20px;
+}
+
+.empty-state-icon {
+    font-size: 5rem;
+    color: #6366f1;
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+
+.empty-state-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 15px;
+}
+
+.empty-state-text {
+    font-size: 1.1rem;
+    color: #6b7280;
+    margin-bottom: 30px;
+    line-height: 1.7;
+}
+
+.btn-large {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+}
+
+/* Achievements */
+.achievements-section {
+    margin-top: 40px;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.achievement-card {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+    opacity: 0.5;
+    filter: grayscale(100%);
+}
+
+.achievement-card.unlocked {
+    opacity: 1;
+    filter: grayscale(0%);
+    border: 2px solid #fbbf24;
+}
+
+.achievement-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.achievement-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.achievement-card.unlocked .achievement-icon {
+    color: #fbbf24;
+}
+
+.achievement-card h4 {
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.achievement-card p {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.achievement-progress {
+    font-weight: 700;
+    color: #6366f1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .habits-grid-modern {
+        grid-template-columns: 1fr;
+    }
+    
+    .welcome-title {
+        font-size: 1.75rem;
+    }
+    
+    .hero-content-wrapper {
+        flex-direction: column;
+    }
+    
+    .progress-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .habit-stats-modern {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

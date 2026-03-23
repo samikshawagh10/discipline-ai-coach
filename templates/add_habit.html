@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Add Habit - Discipline AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <div class="form-header">
+            <h1><i class="fas fa-plus-circle"></i> Add New Habit</h1>
+            <p>Create a habit you want to build and track daily</p>
+        </div>
+
+        <form method="POST" class="standard-form">
+            <div class="form-group">
+                <label for="name">
+                    <i class="fas fa-tag"></i> Habit Name *
+                </label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    class="form-control" 
+                    placeholder="e.g., Morning Workout, Read 30 Minutes, Drink 8 Glasses of Water"
+                    required
+                    autofocus
+                >
+                <small>Make it specific and actionable</small>
+            </div>
+
+            <div class="form-group">
+                <label for="description">
+                    <i class="fas fa-align-left"></i> Description (Optional)
+                </label>
+                <textarea 
+                    id="description" 
+                    name="description" 
+                    class="form-control" 
+                    rows="3"
+                    placeholder="Why is this habit important to you? What's your goal?"
+                ></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="category">
+                    <i class="fas fa-folder"></i> Category
+                </label>
+                <select id="category" name="category" class="form-control">
+                    <option value="">Select a category</option>
+                    <option value="Health">🏃 Health & Fitness</option>
+                    <option value="Learning">📚 Learning & Education</option>
+                    <option value="Productivity">💼 Productivity & Work</option>
+                    <option value="Mindfulness">🧘 Mindfulness & Mental Health</option>
+                    <option value="Social">👥 Social & Relationships</option>
+                    <option value="Finance">💰 Finance & Money</option>
+                    <option value="Creative">🎨 Creative & Hobbies</option>
+                    <option value="Other">📌 Other</option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Create Habit
+                </button>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+
+        <div class="tips-box">
+            <h3><i class="fas fa-lightbulb"></i> Tips for Building Habits</h3>
+            <ul>
+                <li><strong>Start small:</strong> It's better to do 10 push-ups daily than 100 once a week</li>
+                <li><strong>Be specific:</strong> "Exercise 30 minutes" beats "Get fit"</li>
+                <li><strong>Stack habits:</strong> Link new habits to existing ones</li>
+                <li><strong>Track immediately:</strong> Mark completion right after doing it</li>
+                <li><strong>Never miss twice:</strong> One miss is okay, two breaks the pattern</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

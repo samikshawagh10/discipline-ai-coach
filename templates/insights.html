@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}AI Insights - Discipline AI{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="insights-header">
+        <h1><i class="fas fa-brain"></i> AI-Powered Insights</h1>
+        <p>Personalized analysis of your habit patterns and performance</p>
+    </div>
+
+    {% if insights %}
+    <div class="insights-list">
+        {% for insight in insights %}
+        <div class="insight-card-full insight-{{ insight.severity }}">
+            <div class="insight-top">
+                <div class="insight-badge">
+                    {% if insight.severity == 'critical' %}
+                        <i class="fas fa-exclamation-triangle"></i> Critical
+                    {% elif insight.severity == 'high' %}
+                        <i class="fas fa-exclamation-circle"></i> High Priority
+                    {% elif insight.severity == 'medium' %}
+                        <i class="fas fa-info-circle"></i> Medium Priority
+                    {% elif insight.severity == 'positive' %}
+                        <i class="fas fa-trophy"></i> Achievement
+                    {% else %}
+                        <i class="fas fa-lightbulb"></i> Insight
+                    {% endif %}
+                </div>
+                <h3>{{ insight.habit_name }}</h3>
+            </div>
+            
+            <div class="insight-content">
+                <p class="insight-message">{{ insight.message }}</p>
+                
+                <div class="insight-type">
+                    <strong>Pattern Detected:</strong> 
+                    {% if insight.type == 'weekend_slacker' %}
+                        Weekend Inconsistency
+                    {% elif insight.type == 'inconsistent' %}
+                        General Inconsistency
+                    {% elif insight.type == 'failing' %}
+                        Low Completion Rate
+                    {% elif insight.type == 'declining' %}
+                        Performance Decline
+                    {% elif insight.type == 'excellence' %}
+                        Excellent Performance
+                    {% else %}
+                        {{ insight.type }}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="insights-legend">
+        <h3><i class="fas fa-info-circle"></i> Understanding Your Insights</h3>
+        <div class="legend-grid">
+            <div class="legend-item">
+                <span class="legend-badge badge-critical">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </span>
+                <div>
+                    <strong>Critical:</strong> Immediate action required. Your habit is failing.
+                </div>
+            </div>
+            <div class="legend-item">
+                <span class="legend-badge badge-high">
+                    <i class="fas fa-exclamation-circle"></i>
+                </span>
+                <div>
+                    <strong>High Priority:</strong> Concerning pattern detected. Address soon.
+                </div>
+            </div>
+            <div class="legend-item">
+                <span class="legend-badge badge-medium">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+                <div>
+                    <strong>Medium:</strong> Room for improvement. Stay aware.
+                </div>
+            </div>
+            <div class="legend-item">
+                <span class="legend-badge badge-positive">
+                    <i class="fas fa-trophy"></i>
+                </span>
+                <div>
+                    <strong>Achievement:</strong> Excellent work! Keep up the momentum.
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-brain"></i>
+        <h3>No Insights Yet</h3>
+        <p>Track your habits for a few days to receive personalized AI insights about your patterns and performance.</p>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="ai-info">
+        <h3><i class="fas fa-robot"></i> How Discipline AI Analyzes Your Habits</h3>
+        <p>
+            Our AI engine continuously monitors your habit completion patterns across different time periods 
+            and days of the week. It identifies trends like weekend inconsistency, performance declines, 
+            and achievement streaks. Based on these patterns, it provides strict, actionable feedback to 
+            keep you accountable and disciplined.
+        </p>
+        <p>
+            <strong>Remember:</strong> Discipline AI doesn't make excuses. It tells you the truth about your 
+            performance so you can make real improvements.
+        </p>
+    </div>
+</div>
+{% endblock %}
