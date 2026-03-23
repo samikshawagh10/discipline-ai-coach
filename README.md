@@ -1,4 +1,4 @@
-<img width="1437" height="739" alt="Screenshot 2026-03-23 at 11 00 47" src="https://github.com/user-attachments/assets/d3e1e6eb-a102-48de-b75f-9387588cd6ec" /><img width="1437" height="738" alt="Screenshot 2026-03-23 at 11 00 00" src="https://github.com/user-attachments/assets/6d02beeb-8145-4101-898f-a9a075e37d17" />🤖 Discipline AI Coach
+<img width="1437" height="738" alt="Screenshot 2026-03-23 at 11 00 00" src="https://github.com/user-attachments/assets/6d02beeb-8145-4101-898f-a9a075e37d17" />🤖 Discipline AI Coach
 
 An AI-powered habit tracking web app that helps users build discipline through daily tracking, streaks, and smart insights.
 
