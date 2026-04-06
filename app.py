@@ -371,8 +371,7 @@ def add_habit():
 @app.route('/habits/<int:habit_id>/track', methods=['POST'])
 @login_required
 def track_habit(habit_id):
-    """Mark habit as completed or missed for today"""
-    completed = request.form.get('completed') == '1'
+    """Toggle today's habit status; first click of the day marks it done"""
     today = datetime.now().date()
     
     conn = get_db()
@@ -389,6 +388,17 @@ def track_habit(habit_id):
     
     # Insert or update tracking
     try:
+        cursor.execute('''
+            SELECT completed FROM tracking
+            WHERE habit_id = ? AND date = ?
+        ''', (habit_id, today))
+        existing = cursor.fetchone()
+
+        if existing:
+            completed = not bool(existing['completed'])
+        else:
+            completed = True
+
         cursor.execute('''
             INSERT INTO tracking (habit_id, date, completed)
             VALUES (?, ?, ?)
